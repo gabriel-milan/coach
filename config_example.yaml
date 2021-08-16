@@ -1,0 +1,16 @@
+REDIS_HOST: "localhost"
+REDIS_PORT: 6379
+REDIS_DB: 0
+REDIS_PASSWORD: ""
+REDIS_QUEUE_NAME: "queue_name"
+DB_CONNECTION_STRING: "sqlite:///:memory:"
+SLURM_PARTITION: "debug"
+SLURM_CORES_PER_JOB: 1
+SLURM_MEMORY_PER_JOB: "1G"
+SLURM_WORKER_NAME: "worker_name"
+SLURM_JOB_EXCLUSIVE: false
+SLURM_MAX_WORKERS: 1
+MINIO_ENDPOINT: "minio.example.com"
+MINIO_ACCESS_KEY: "minio_access_key"
+MINIO_SECRET_KEY: "minio_secret_key"
+MINIO_BUCKET: "minio_bucket_name"
