@@ -90,7 +90,7 @@ def init():
         f"Config file created at {constants.COACH_DEFAULT_CONFIG_PATH.value}.")
 
 
-@ app.command()
+@app.command()
 def daemon():
     """
     Run daemon process for SLURM login machine.
@@ -98,11 +98,12 @@ def daemon():
     if not check_config():
         return
     from coach.coach import Coach
+    typer.echo("Starting Coach daemon process...")
     c = Coach()
     c.start_scheduler()
 
 
-@ app.command()
+@app.command()
 def submit(python_script: Path, job_config: Path, model_config: Path):
     """
     Submits a job to the queue.
@@ -132,7 +133,7 @@ def submit(python_script: Path, job_config: Path, model_config: Path):
     typer.echo(f"Submitted job with run id {run_id}")
 
 
-@ app.command()
+@app.command()
 def list():
     """
     List all jobs.
@@ -146,7 +147,7 @@ def list():
         typer.echo(f"{i + 1}. {run}")
 
 
-@ app.command()
+@app.command()
 def show(run_id: str):
     """
     Shows a single run from the database.

@@ -28,7 +28,6 @@ class Scheduler(object):
         )
         self._cluster.scale(jobs=constants.DASK_DEFAULT_WORKERS.value)
         self._cluster.adapt(maximum_jobs=max_workers)
-        self._cluster.start()
 
     @property
     def address(self):

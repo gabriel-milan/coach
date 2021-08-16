@@ -42,11 +42,18 @@ class Coach(object):
         self._broker.publish(message)
 
     def start_scheduler(self, redis_queue_name: str = None):
+        print("Starting Dask scheduler...", end="")
         self._scheduler = Scheduler()
+        print(" success!")
+        print("Starting Prefect executor...", end="")
         self._executor = Executor(self._scheduler)
+        print(" success!")
+        print("Starting Redis queue consumer...", end="")
         redis_queue_name = redis_queue_name or load_env_as_type(
             constants.REDIS_QUEUE_NAME_ENV.value, default=constants.REDIS_QUEUE_NAME_ENV_DEFAULT.value)
         self._broker.run_in_thread(redis_queue_name, self._message_handler)
+        print(" success!")
+        print("Coach daemon is executing.")
 
     def submit_job(self, python_script_path: str, job_config: dict, model_config: dict, redis_queue_name: str = None) -> str:
         # Generate unique path for python script
