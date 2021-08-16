@@ -39,7 +39,7 @@ def get_minio_client(minio_access_key: str = None, minio_secret_key: str = None,
         raise ValueError('Missing Minio URL')
     if not minio_bucket:
         raise ValueError('Missing Minio bucket')
-    return Minio(minio_url, access_key=minio_access_key, secret_key=minio_secret_key, bucket=minio_bucket)
+    return Minio(minio_url, access_key=minio_access_key, secret_key=minio_secret_key)
 
 
 def join_tags(tags: list) -> str:
