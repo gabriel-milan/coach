@@ -58,7 +58,7 @@ class Coach(object):
     def submit_job(self, python_script_path: str, job_config: dict, model_config: dict, redis_queue_name: str = None) -> str:
         # Generate unique path for python script
         minio_script_path = join(
-            constants.SCRIPTS_PATH_PREFIX.value, str(uuid.uuid4), python_script_path.split('/')[-1])
+            constants.SCRIPTS_PATH_PREFIX.value, str(uuid.uuid4()), python_script_path.split('/')[-1])
         # Upload script to MinIO
         minio_client = get_minio_client()
         minio_client.fput_object(
