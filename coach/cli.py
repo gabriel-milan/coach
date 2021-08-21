@@ -14,7 +14,7 @@ def check_config():
     Check if the config file exists.
     """
     if not constants.COACH_DEFAULT_CONFIG_PATH.value.exists():
-        print("No config file found. Please run `coach init` to create one.")
+        typer.echo("No config file found. Please run `coach init` to create one.")
         return False
     from coach.utils import load_config_file_to_envs
     load_config_file_to_envs()

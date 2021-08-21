@@ -5,7 +5,6 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy import Column, Float, Integer, String, create_engine
-from tensorflow.keras.models import Model, model_from_json
 
 from coach.constants import constants
 from coach.utils import (
@@ -67,7 +66,7 @@ class DBManager:
         session.commit()
 
 
-def save_run(train_config: dict, model: Model, train_score: float,
+def save_run(train_config: dict, model, train_score: float,
              validation_score: float, tags: list = None):
     # Join tags
     tags = tags or []
@@ -93,7 +92,8 @@ def save_run(train_config: dict, model: Model, train_score: float,
                        validation_score, weights_path, tags)
 
 
-def load_run(run_id: str) -> Model:
+def load_run(run_id: str):
+    from tensorflow.keras.models import model_from_json
     # Get run from DB
     db_manager = DBManager()
     run = db_manager.session.query(Run).filter(Run.run_id == run_id).first()

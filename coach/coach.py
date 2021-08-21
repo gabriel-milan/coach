@@ -6,6 +6,7 @@ from coach.constants import constants
 from coach.db import DBManager
 from coach.executor import Executor
 from coach.job_config import JobConfig
+from coach.logging import logger
 from coach.pubsub import Broker
 from coach.scheduler import Scheduler
 from coach.utils import get_minio_client, load_env_as_type
@@ -17,10 +18,33 @@ class Coach(object):
     """
 
     def __init__(self):
-        self._broker: Broker = Broker()
-        self._db: DBManager = DBManager()
+        logger.info("Coach instance initializing...")
+        self._db: DBManager = None
+        self._broker: Broker = None
         self._scheduler: Scheduler = None
         self._executor: Executor = None
+
+    def _initialize_db(self):
+        logger.info("Starting DBManager instance...")
+        self._db: DBManager = DBManager()
+        logger.info("DBManager instance started successfully!")
+
+    def _initialize_broker(self):
+        logger.info("Starting Broker instance...")
+        self._broker: Broker = Broker()
+        logger.info("Broker instance started successfully!")
+
+    def _initialize_scheduler(self):
+        logger.info("Starting Scheduler instance...")
+        self._scheduler: Scheduler = Scheduler()
+        logger.info("Scheduler instance started successfully!")
+
+    def _initialize_executor(self):
+        logger.info("Starting Executor instance...")
+        if not self._scheduler:
+            self._initialize_scheduler()
+        self._executor: Executor = Executor(self._scheduler)
+        logger.info("Executor instance started successfully!")
 
     def _message_handler(self, message):
         """
@@ -28,32 +52,34 @@ class Coach(object):
         :param message:
         :return:
         """
+        logger.info(f"Received message: {message}")
         if message["type"] == "message":
             data = json.loads(message["data"].decode("utf-8"))
             if not self._scheduler:
-                raise Exception("Scheduler not started")
+                self._initialize_scheduler()
             if not "job_config" in data:
                 raise Exception("Job config not found")
             if not "model_config" in data:
                 raise Exception("Model config not found")
             job_config = JobConfig(data["job_config"])
             model_config = data["model_config"]
+            if not self._executor:
+                self._initialize_executor()
             self._executor.execute(job_config, model_config)
-        self._broker.publish(message)
 
     def start_scheduler(self, redis_queue_name: str = None):
-        print("Starting Dask scheduler...", end="")
-        self._scheduler = Scheduler()
-        print(" success!")
-        print("Starting Prefect executor...", end="")
-        self._executor = Executor(self._scheduler)
-        print(" success!")
-        print("Starting Redis queue consumer...", end="")
+        if not self._scheduler:
+            self._initialize_scheduler()
+        if not self._executor:
+            self._initialize_executor()
         redis_queue_name = redis_queue_name or load_env_as_type(
             constants.REDIS_QUEUE_NAME_ENV.value, default=constants.REDIS_QUEUE_NAME_ENV_DEFAULT.value)
+        logger.info(
+            f"Starting Redis queue consumer for queue_name=\"{redis_queue_name}\"...")
+        self._initialize_broker()
         self._broker.run_in_thread(redis_queue_name, self._message_handler)
-        print(" success!")
-        print("Coach daemon is executing.")
+        logger.info("Redis queue consumer started successfully!")
+        logger.info("Coach daemon is executing...")
 
     def submit_job(self, python_script_path: str, job_config: dict, model_config: dict, redis_queue_name: str = None) -> str:
         # Generate unique path for python script
@@ -73,4 +99,13 @@ class Coach(object):
         # Submit job
         redis_queue_name = redis_queue_name or load_env_as_type(
             constants.REDIS_QUEUE_NAME_ENV.value, default=constants.REDIS_QUEUE_NAME_ENV_DEFAULT.value)
+        logger.info(
+            f"Submitting job with id=\"{job_id}\" to Redis queue=\"{redis_queue_name}\"...")
+        if not self._broker:
+            self._initialize_broker()
+        payload = {
+            "job_config": job_config,
+            "model_config": model_config
+        }
+        self._broker.publish(redis_queue_name, json.dumps(payload))
         return job_id
