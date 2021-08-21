@@ -46,6 +46,7 @@ class Coach(object):
         self._executor: Executor = Executor(self._scheduler)
         logger.info("Executor instance started successfully!")
 
+    @logger.catch
     def _message_handler(self, message):
         """
         Message handler for broker
@@ -61,12 +62,13 @@ class Coach(object):
                 raise Exception("Job config not found")
             if not "model_config" in data:
                 raise Exception("Model config not found")
-            job_config = JobConfig(data["job_config"])
+            job_config = JobConfig(**data["job_config"])
             model_config = data["model_config"]
             if not self._executor:
                 self._initialize_executor()
             self._executor.execute(job_config, model_config)
 
+    @logger.catch
     def start_scheduler(self, redis_queue_name: str = None):
         if not self._scheduler:
             self._initialize_scheduler()
@@ -81,6 +83,7 @@ class Coach(object):
         logger.info("Redis queue consumer started successfully!")
         logger.info("Coach daemon is executing...")
 
+    @logger.catch
     def submit_job(self, python_script_path: str, job_config: dict, model_config: dict, redis_queue_name: str = None) -> str:
         # Generate unique path for python script
         minio_script_path = join(

@@ -69,6 +69,6 @@ class Executor(object):
             template_text = fetch_template_from_minio(
                 minio_client, bucket, job_config.script_key)
             rendered_template = render_template(
-                template_text, **job_config.params, **job_config)
+                template_text, **job_config.params, **job_config._asdict())
             execute_template(rendered_template)
         flow.run(executor=self._executor)
