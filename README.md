@@ -20,5 +20,4 @@ A setup for training Tensorflow models on SLURM clusters
 
 - [ ] Add support for uploading/managing datasets
 - [ ] Reusable Python scripts
-- [ ] No loading tensorflow at all, except when explicitly needed
-- [ ] Replace Redis PubSub with Redis Queue
+- [x] No loading tensorflow at all, except when explicitly needed

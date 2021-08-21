@@ -23,8 +23,9 @@ setup(
         "prefect==0.15.3",
         "PyYAML==5.4.1",
         "sqlalchemy_utils==0.37.8",
-        "tensorflow==2.6.0",
+        "tensorflow",
         "typer==0.3.2",
+        "loguru==0.5.3",
     ],
     classifiers=[
         "Development Status :: 4 - Beta",
