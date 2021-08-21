@@ -10,22 +10,6 @@ from coach.utils import get_minio_client, load_env_as_type
 
 
 @task
-def fetch_template_from_minio(client: Minio, bucket: str, key: str):
-    """
-    Task to fetch a template from Minio
-
-    Args:
-        - client (Minio): the Minio client
-        - bucket (str): the bucket to fetch the template from
-        - key (str): the key to fetch the template from
-
-    Returns:
-        - str: the template text
-    """
-    return client.get_object(bucket, key).read().decode("utf-8")
-
-
-@task
 def render_template(template_text: str, **kwargs):
     """
     Task to render a jinja2 template
@@ -66,8 +50,8 @@ class Executor(object):
             minio_client = get_minio_client()
             bucket = load_env_as_type(constants.MINIO_BUCKET_ENV.value,
                                       default=constants.MINIO_BUCKET_ENV_DEFAULT.value)
-            template_text = fetch_template_from_minio(
-                minio_client, bucket, job_config.script_key)
+            template_text = minio_client.get_object(
+                bucket, job_config.script_key).read().decode("utf-8")
             rendered_template = render_template(
                 template_text, **job_config.params, **job_config._asdict())
             execute_template(rendered_template)
