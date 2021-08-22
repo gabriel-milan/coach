@@ -54,8 +54,7 @@ class Executor:
 
     def __init__(self, scheduler: Scheduler):
         self._scheduler = scheduler
-        # self._executor = DaskExecutor(scheduler.address)
-        self._executor = DaskExecutor()
+        self._executor = DaskExecutor(scheduler.address)
         self._db: DBManager = DBManager()
 
     def _threaded_execution_handler(self, flow: Flow, job_config: JobConfig):
