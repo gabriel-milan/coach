@@ -107,11 +107,15 @@ class Coach:
         Submits a job to the broker
         """
         # Generate unique path for python script
+        script_id = str(uuid.uuid4())
         minio_script_path = join(
             constants.SCRIPTS_PATH_PREFIX.value,
-            str(uuid.uuid4()),
+            script_id,
             python_script_path.split("/")[-1],
         )
+        if not self._db:
+            self._initialize_db()
+        self._db.add_script(script_id, minio_script_path)
         # Upload script to MinIO
         minio_client = get_minio_client()
         save_to_minio(minio_client, minio_script_path, python_script_path)
@@ -119,7 +123,9 @@ class Coach:
         job_id = str(uuid.uuid4())
         # Set job config with MinIO script path and run_id
         job_config["run_id"] = job_id
-        job_config["script_key"] = minio_script_path
+        job_config["script_key"] = script_id
+        # Add job to the database
+        self._db.create_empty_run(job_id)
         # Submit job
         redis_queue_name = redis_queue_name or load_env_as_type(
             constants.REDIS_QUEUE_NAME_ENV.value,

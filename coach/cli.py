@@ -10,8 +10,8 @@ import yaml
 
 from coach.coach import Coach
 from coach.constants import constants
-from coach.db import list_all_runs, get_run
-from coach.utils import load_config_file_to_envs
+from coach.db import list_all_runs, get_run, DBManager, delete_run_from_db
+from coach.utils import load_config_file_to_envs, get_minio_client, download_from_minio
 
 app = typer.Typer()
 
@@ -119,8 +119,16 @@ def submit(python_script: Path, job_config: Path, model_config: Path):
         return
     # Check if all paths exists
     if not python_script.exists():
-        typer.echo("Python script does not exist.")
-        return
+        db_manager = DBManager()
+        script = db_manager.get_script(str(python_script))
+        if script is None:
+            typer.echo(
+                "Python script does not exist locally and was not found on database."
+            )
+            return
+        minio_client = get_minio_client()
+        python_script = f"/tmp/{script.script_id}.py"
+        download_from_minio(minio_client, script.script_path, python_script)
     if not job_config.exists():
         typer.echo("Job config does not exist.")
         return
@@ -178,3 +186,61 @@ def show(run_id: str):
     typer.echo(">>> from coach.db import load_run")
     typer.echo(">>> load_config_file_to_envs()")
     typer.echo(">>> model = load_run(run_id)")
+
+
+@app.command()
+def delete_run(run_id: str):
+    """
+    Deletes a run from the database.
+    """
+    if not check_config():
+        return
+
+    run = get_run(run_id)
+    if run is None:
+        typer.echo(f"Run {run_id} not found.")
+        return
+    typer.echo(f"Run {run_id} will be deleted!")
+    typer.echo(f"Information: {run}")
+    choice = typer.prompt("Are you sure?", default=False, show_choices=True, type=bool)
+    if choice:
+        delete_run_from_db(run_id)
+        typer.echo(f"Run {run_id} deleted!")
+    else:
+        typer.echo("Run not deleted.")
+
+
+@app.command()
+def list_scripts():
+    """
+    List all scripts in the database.
+    """
+    if not check_config():
+        return
+
+    db_manager = DBManager()
+    scripts = db_manager.get_all_scripts()
+    if scripts is None:
+        typer.echo("No scripts found.")
+        return
+    typer.echo(f"Found {len(scripts)} scripts.")
+    for i, script in enumerate(scripts):
+        typer.echo(f"{i + 1}. {script}")
+
+
+@app.command()
+def download_script(script_id: str):
+    """
+    Downloads a script from the database.
+    """
+    if not check_config():
+        return
+
+    db_manager = DBManager()
+    script = db_manager.get_script(script_id)
+    if script is None:
+        typer.echo(f"Script {script_id} not found.")
+        return
+    typer.echo(f"Script {script_id} is available! Downloading...")
+    minio_client = get_minio_client()
+    download_from_minio(minio_client, script.script_path, f"{script.script_id}.py")

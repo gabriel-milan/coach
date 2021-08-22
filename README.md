@@ -19,5 +19,5 @@ A setup for training Tensorflow models on SLURM clusters
 ## To do
 
 - [ ] Add support for uploading/managing datasets
-- [ ] Reusable Python scripts
+- [x] Reusable Python scripts
 - [x] No loading tensorflow at all, except when explicitly needed

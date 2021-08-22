@@ -100,3 +100,17 @@ def save_to_minio(minio_client: Minio, file_path: str, file_name: str):
         file_path,
         file_name,
     )
+
+
+def download_from_minio(minio_client: Minio, file_path: str, file_name: str):
+    """
+    Download a file from MinIO
+    """
+    minio_client.fget_object(
+        load_env_as_type(
+            constants.MINIO_BUCKET_ENV.value,
+            default=constants.MINIO_BUCKET_ENV_DEFAULT.value,
+        ),
+        file_path,
+        file_name,
+    )
