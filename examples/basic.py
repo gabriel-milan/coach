@@ -1,7 +1,7 @@
 import tensorflow as tf
 from coach.db import save_run
 
-model = tf.keras.models.from_json({{model_config}})
+model = tf.keras.models.model_from_json({{model_config}})
 
 # Do some training
 

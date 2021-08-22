@@ -1,10 +1,17 @@
+"""
+Provides CLI app for Coach.
+"""
+
 import json
-import yaml
 from pathlib import Path
 
 import typer
+import yaml
 
+from coach.coach import Coach
 from coach.constants import constants
+from coach.db import list_all_runs, get_run
+from coach.utils import load_config_file_to_envs
 
 app = typer.Typer()
 
@@ -16,11 +23,12 @@ def check_config():
     if not constants.COACH_DEFAULT_CONFIG_PATH.value.exists():
         typer.echo("No config file found. Please run `coach init` to create one.")
         return False
-    from coach.utils import load_config_file_to_envs
+
     load_config_file_to_envs()
     return True
 
 
+# pylint: disable=too-many-locals
 @app.command()
 def init():
     """
@@ -51,8 +59,7 @@ def init():
     slurm_partition = typer.prompt("SLURM Partition")
     slurm_cores_per_job = typer.prompt("SLURM Cores Per Job", default=1)
     slurm_memory_per_job = typer.prompt("SLURM Memory Per Job", default="1G")
-    slurm_worker_name = typer.prompt(
-        "SLURM Worker Name", default="worker_name")
+    slurm_worker_name = typer.prompt("SLURM Worker Name", default="worker_name")
     slurm_job_exclusive = typer.prompt(
         "SLURM Job Exclusive", default=False, show_choices=True, type=bool
     )
@@ -87,8 +94,7 @@ def init():
             }
         )
     )
-    typer.echo(
-        f"Config file created at {constants.COACH_DEFAULT_CONFIG_PATH.value}.")
+    typer.echo(f"Config file created at {constants.COACH_DEFAULT_CONFIG_PATH.value}.")
 
 
 @app.command()
@@ -98,10 +104,10 @@ def daemon():
     """
     if not check_config():
         return
-    from coach.coach import Coach
+
     typer.echo("Starting Coach daemon process...")
-    c = Coach()
-    c.start_scheduler()
+    coach = Coach()
+    coach.start_scheduler()
 
 
 @app.command()
@@ -122,18 +128,20 @@ def submit(python_script: Path, job_config: Path, model_config: Path):
         typer.echo("Model config does not exist.")
         return
     # Load job_config json
+    # pylint: disable=invalid-name
     with job_config.open() as f:
         job_config = json.load(f)
     # Load model_config json
+    # pylint: disable=invalid-name
     with model_config.open() as f:
         model_config = json.load(f)
     # Submit job
-    from coach.coach import Coach
     c = Coach()
     run_id = c.submit_job(str(python_script), job_config, model_config)
     typer.echo(f"Submitted job with run id {run_id}")
 
 
+# pylint: disable=redefined-builtin
 @app.command()
 def list():
     """
@@ -141,7 +149,7 @@ def list():
     """
     if not check_config():
         return
-    from coach.db import list_all_runs
+
     runs = list_all_runs()
     typer.echo(f"Found {len(runs)} runs.")
     for i, run in enumerate(runs):
@@ -155,7 +163,7 @@ def show(run_id: str):
     """
     if not check_config():
         return
-    from coach.db import get_run
+
     run = get_run(run_id)
     if run is None:
         typer.echo(f"Run {run_id} not found.")
@@ -164,7 +172,8 @@ def show(run_id: str):
     typer.echo(f"Run {run_id} is available!")
     typer.echo(f"Information: {run}")
     typer.echo(
-        "If you desire to load this model, open a Python shell and do the following:")
+        "If you desire to load this model, open a Python shell and do the following:"
+    )
     typer.echo(">>> from coach.utils import load_config_file_to_envs")
     typer.echo(">>> from coach.db import load_run")
     typer.echo(">>> load_config_file_to_envs()")

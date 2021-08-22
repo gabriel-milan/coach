@@ -1,3 +1,7 @@
+"""
+Provides Coach, the main class for the application.
+"""
+
 import json
 import uuid
 from os.path import join
@@ -9,10 +13,10 @@ from coach.job_config import JobConfig
 from coach.logging import logger
 from coach.pubsub import Broker
 from coach.scheduler import Scheduler
-from coach.utils import get_minio_client, load_env_as_type
+from coach.utils import get_minio_client, load_env_as_type, save_to_minio
 
 
-class Coach(object):
+class Coach:
     """
     Main class for Coach
     """
@@ -63,37 +67,54 @@ class Coach(object):
             if not "model_config" in data:
                 raise Exception("Model config not found")
             job_config = JobConfig(**data["job_config"])
-            model_config = data["model_config"]
+            model_config = f'\'{json.dumps(data["model_config"])}\''
             if not self._executor:
                 self._initialize_executor()
             self._executor.execute(job_config, model_config)
 
     @logger.catch
     def start_scheduler(self, redis_queue_name: str = None):
+        """
+        Starts the Coach daemon
+        :param redis_queue_name:
+        :return:
+        """
         if not self._scheduler:
             self._initialize_scheduler()
         if not self._executor:
             self._initialize_executor()
         redis_queue_name = redis_queue_name or load_env_as_type(
-            constants.REDIS_QUEUE_NAME_ENV.value, default=constants.REDIS_QUEUE_NAME_ENV_DEFAULT.value)
+            constants.REDIS_QUEUE_NAME_ENV.value,
+            default=constants.REDIS_QUEUE_NAME_ENV_DEFAULT.value,
+        )
         logger.info(
-            f"Starting Redis queue consumer for queue_name=\"{redis_queue_name}\"...")
+            f'Starting Redis queue consumer for queue_name="{redis_queue_name}"...'
+        )
         self._initialize_broker()
         self._broker.run_in_thread(redis_queue_name, self._message_handler)
         logger.info("Redis queue consumer started successfully!")
         logger.info("Coach daemon is executing...")
 
     @logger.catch
-    def submit_job(self, python_script_path: str, job_config: dict, model_config: dict, redis_queue_name: str = None) -> str:
+    def submit_job(
+        self,
+        python_script_path: str,
+        job_config: dict,
+        model_config: dict,
+        redis_queue_name: str = None,
+    ) -> str:
+        """
+        Submits a job to the broker
+        """
         # Generate unique path for python script
         minio_script_path = join(
-            constants.SCRIPTS_PATH_PREFIX.value, str(uuid.uuid4()), python_script_path.split('/')[-1])
+            constants.SCRIPTS_PATH_PREFIX.value,
+            str(uuid.uuid4()),
+            python_script_path.split("/")[-1],
+        )
         # Upload script to MinIO
         minio_client = get_minio_client()
-        minio_client.fput_object(
-            load_env_as_type(constants.MINIO_BUCKET_ENV.value,
-                             default=constants.MINIO_BUCKET_ENV_DEFAULT.value),
-            minio_script_path, python_script_path)
+        save_to_minio(minio_client, minio_script_path, python_script_path)
         # Generate unique job id
         job_id = str(uuid.uuid4())
         # Set job config with MinIO script path and run_id
@@ -101,14 +122,14 @@ class Coach(object):
         job_config["script_key"] = minio_script_path
         # Submit job
         redis_queue_name = redis_queue_name or load_env_as_type(
-            constants.REDIS_QUEUE_NAME_ENV.value, default=constants.REDIS_QUEUE_NAME_ENV_DEFAULT.value)
+            constants.REDIS_QUEUE_NAME_ENV.value,
+            default=constants.REDIS_QUEUE_NAME_ENV_DEFAULT.value,
+        )
         logger.info(
-            f"Submitting job with id=\"{job_id}\" to Redis queue=\"{redis_queue_name}\"...")
+            f'Submitting job with id="{job_id}" to Redis queue="{redis_queue_name}"...'
+        )
         if not self._broker:
             self._initialize_broker()
-        payload = {
-            "job_config": job_config,
-            "model_config": model_config
-        }
+        payload = {"job_config": job_config, "model_config": model_config}
         self._broker.publish(redis_queue_name, json.dumps(payload))
         return job_id
