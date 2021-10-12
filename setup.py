@@ -3,9 +3,15 @@ from setuptools import setup, find_packages
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+
+def get_requirements():
+    with open('requirements.txt') as f:
+        return f.read().splitlines()
+
+
 setup(
     name="tf_coach",
-    version="0.1.0",
+    version="0.0.1",
     license="GPL-3.0",
     description="Setup for training Tensorflow models on SLURM clusters",
     long_description=long_description,
@@ -14,19 +20,7 @@ setup(
     author="Gabriel Gazola Milan",
     author_email="gabriel.gazola@poli.ufrj.br",
     url="https://github.com/gabriel-milan/coach",
-    install_requires=[
-        "Jinja2==3.0.1",
-        "redis==3.5.3",
-        "SQLAlchemy==1.3.18",
-        "dask_jobqueue==0.7.3",
-        "minio==7.1.0",
-        "prefect==0.15.3",
-        "PyYAML==5.4.1",
-        "sqlalchemy_utils==0.37.8",
-        "tensorflow",
-        "typer==0.3.2",
-        "loguru==0.5.3",
-    ],
+    install_requires=get_requirements(),
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",

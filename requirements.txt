@@ -1,11 +1,10 @@
-Jinja2==3.0.1
-redis==3.5.3
-SQLAlchemy==1.3.18
-dask_jobqueue==0.7.3
 minio==7.1.0
+dask_jobqueue==0.7.3
+Jinja2==3.0.1
 prefect==0.15.3
-PyYAML==5.4.1
-sqlalchemy_utils==0.37.8
 tensorflow
-typer==0.3.2
 loguru==0.5.3
+Django==3.2.8
+PyYAML==5.4.1
+typer==0.4.0
+psycopg2-binary

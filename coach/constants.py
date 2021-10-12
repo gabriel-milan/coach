@@ -3,13 +3,23 @@ Provides constants for the application.
 """
 
 from enum import Enum
+from os import getenv
 from pathlib import Path
 
-# pylint: disable=invalid-name
-class constants(Enum):
+
+class constants(Enum):  # pylint: disable=invalid-name
     """
     Constants for the application
     """
+
+    # Time
+    SECOND = 1
+    MINUTE = 60 * SECOND
+    HOUR = 60 * MINUTE
+    DAY = 24 * HOUR
+    WEEK = 7 * DAY
+    MONTH = 30 * DAY
+    YEAR = 365 * DAY
 
     # Redis
     REDIS_HOST_ENV = "REDIS_HOST"
@@ -24,12 +34,22 @@ class constants(Enum):
     REDIS_QUEUE_NAME_ENV_DEFAULT = None
 
     # Database
-    DB_CONNECTION_STRING_ENV = "DB_CONNECTION_STRING"
-    DB_CONNECTION_STRING_ENV_DEFAULT = None
+    DB_HOST_ENV = "DB_HOST"
+    DB_HOST_ENV_DEFAULT = None
+    DB_PORT_ENV = "DB_PORT"
+    DB_PORT_ENV_DEFAULT = 5432
+    DB_USER_ENV = "DB_USER"
+    DB_USER_ENV_DEFAULT = "postgres"
+    DB_PASSWORD_ENV = "DB_PASSWORD"
+    DB_PASSWORD_ENV_DEFAULT = None
+    DB_NAME_ENV = "DB_NAME"
+    DB_NAME_ENV_DEFAULT = "coach"
+    RUN_STATUS_CREATED = "CREATED"
     RUN_STATUS_QUEUED = "QUEUED"
     RUN_STATUS_RUNNING = "RUNNING"
     RUN_STATUS_COMPLETED = "COMPLETED"
     RUN_STATUS_FAILED = "FAILED"
+    RUN_STATUS_CANCELED = "CANCELED"
 
     # SLURM
     SLURM_PARTITION_ENV = "SLURM_PARTITION"
@@ -48,6 +68,10 @@ class constants(Enum):
     # MinIO
     MINIO_ENDPOINT_ENV = "MINIO_ENDPOINT"
     MINIO_ENDPOINT_ENV_DEFAULT = None
+    MINIO_ENDPOINT_SCHEMA_ENV = "MINIO_ENDPOINT_SCHEMA"
+    MINIO_ENDPOINT_SCHEMA_ENV_DEFAULT = "https"
+    MINIO_ENDPOINT_PORT_ENV = "MINIO_ENDPOINT_PORT"
+    MINIO_ENDPOINT_PORT_ENV_DEFAULT = 443
     MINIO_ACCESS_KEY_ENV = "MINIO_ACCESS_KEY"
     MINIO_ACCESS_KEY_ENV_DEFAULT = None
     MINIO_SECRET_KEY_ENV = "MINIO_SECRET_KEY"
@@ -56,9 +80,15 @@ class constants(Enum):
     MINIO_BUCKET_ENV_DEFAULT = None
     WEIGHTS_PATH_PREFIX = "weights/"
     SCRIPTS_PATH_PREFIX = "scripts/"
+    DATASETS_PATH_PREFIX = "datasets"
 
     # Dask scheduler
     DASK_DEFAULT_WORKERS = 0
 
     # Coach
     COACH_DEFAULT_CONFIG_PATH = Path.home() / ".coach/config.yaml"
+    SCHEDULER_SLEEP_TIME = 30 * SECOND
+
+    # Django
+    DJANGO_SETTINGS_MODE_ENV = "DJANGO_SETTINGS_MODE"
+    DJANGO_SETTINGS_MODE_ENV_DEFAULT = "prod"

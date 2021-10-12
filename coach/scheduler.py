@@ -7,8 +7,8 @@ from dask_jobqueue import SLURMCluster
 from coach.constants import constants
 from coach.utils import load_env_as_type
 
-# pylint: disable=too-few-public-methods
-class Scheduler:
+
+class Scheduler:  # pylint: disable=too-few-public-methods
     """
     Scheduler class
 

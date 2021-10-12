@@ -130,3 +130,6 @@ dmypy.json
 
 # Dask
 *.lock
+
+manage.py
+coach/migrations/

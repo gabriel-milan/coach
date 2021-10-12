@@ -2,21 +2,45 @@
 Provides Executor, a wrapper for a Prefect Flow
 """
 
+import json
 from time import sleep
 from threading import Thread
 from functools import partial
 
 import jinja2
+import prefect
 from prefect import task, Flow
 from prefect.engine.state import State
 from prefect.executors import DaskExecutor
 
 from coach.constants import constants
-from coach.db import DBManager
-from coach.scheduler import Scheduler
-from coach.job_config import JobConfig
 from coach.logging import logger
-from coach.utils import get_minio_client, load_env_as_type
+from coach.scheduler import Scheduler
+from coach.utils import get_minio_client, load_config_file_to_envs, load_env_as_type, safe_object_get
+
+
+@task
+def setup():
+    load_config_file_to_envs()
+
+
+@task
+def update_run_status(run_id: str):
+    """
+    Task to update the status of a run
+
+    Args:
+        - run (Run): the run to update
+    """
+    from coach.models import Status, Run
+    status = safe_object_get(
+        Status, status=constants.RUN_STATUS_RUNNING.value)
+    if status is None:
+        status = Status(status=constants.RUN_STATUS_RUNNING.value)
+        status.save()
+    run: Run = safe_object_get(Run, id=run_id)
+    run.status = status
+    run.save()
 
 
 @task
@@ -42,12 +66,13 @@ def execute_template(rendered_template: str):
     Args:
         - rendered_template (str): the rendered template to execute
     """
+    logger = prefect.context.get("logger")
+    logger.info(f"Executing template: {rendered_template}")
     # pylint: disable=exec-used
     exec(rendered_template)
 
 
-# pylint: disable=too-few-public-methods
-class Executor:
+class Executor:  # pylint: disable=too-few-public-methods
     """
     A wrapper for a Prefect Flow
     """
@@ -55,51 +80,78 @@ class Executor:
     def __init__(self, scheduler: Scheduler):
         self._scheduler = scheduler
         self._executor = DaskExecutor(scheduler.address)
-        self._db: DBManager = DBManager()
 
-    def _threaded_execution_handler(self, flow: Flow, job_config: JobConfig):
+    def _threaded_execution_handler(self, flow: Flow, run_id: str):
         """
         Threaded handler for the flow execution
         """
-        self._db.update_run_status(
-            job_config.run_id, constants.RUN_STATUS_RUNNING.value
-        )
-        state: State = flow.run(executor=self._executor)
+        from coach.models import Status, Run
+        status = safe_object_get(
+            Status, status=constants.RUN_STATUS_QUEUED.value)
+        if status is None:
+            status = Status(status=constants.RUN_STATUS_QUEUED.value)
+            status.save()
+        run: Run = safe_object_get(Run, id=run_id)
+        run.status = status
+        run.save()
+        state: State = flow.run()  # (executor=self._executor)
         while not state.is_finished():
             sleep(0.25)
         if state.is_failed():
-            self._db.update_run_status(
-                job_config.run_id, constants.RUN_STATUS_FAILED.value
-            )
-            logger.error(f"Job {job_config.run_id} failed with error: {state.result}")
+            status = safe_object_get(
+                Status, status=constants.RUN_STATUS_FAILED.value)
+            if status is None:
+                status = Status(
+                    status=constants.RUN_STATUS_FAILED.value)
+                status.save()
+            run: Run = safe_object_get(Run, id=run_id)
+            run.status = status
+            run.save()
+            logger.error(
+                f"Job {run_id} failed with error: {state.result}")
         elif state.is_successful():
-            logger.info(f"Job {job_config.run_id} completed successfully")
+            status = safe_object_get(
+                Status, status=constants.RUN_STATUS_COMPLETED.value)
+            if status is None:
+                status = Status(
+                    status=constants.RUN_STATUS_COMPLETED.value)
+                status.save()
+            run: Run = safe_object_get(Run, id=run_id)
+            run.status = status
+            run.save()
+            logger.info(f"Job {run_id} completed successfully")
 
-    def execute(self, job_config: JobConfig, model_config: dict):
+    def execute(self, run_id: str):
         """
         Execute the training job
         """
-        job_config.params.update({"model_config": model_config})
+        from coach.models import Model, Run
         with Flow("Training Flow") as flow:
+            setup()
+            update_run_status(run_id=run_id)
             minio_client = get_minio_client()
             bucket = load_env_as_type(
                 constants.MINIO_BUCKET_ENV.value,
                 default=constants.MINIO_BUCKET_ENV_DEFAULT.value,
             )
-            script_path = self._db.get_script_path(job_config.script_key)
+            run: Run = safe_object_get(Run, id=run_id)
+            script_path = run.script.path
             template_text = (
-                minio_client.get_object(bucket, script_path).read().decode("utf-8")
+                minio_client.get_object(
+                    bucket, script_path).read().decode("utf-8")
             )
+            model: Model = run.model
+            logger.info(model.config)
             rendered_template = render_template(
                 template_text,
-                **job_config.params,
-                **job_config._asdict(),
-                **{"run_config": job_config._asdict()},
+                run_id=run_id,
+                model_config=f"\"\"\"{model.config}\"\"\"",
+                **json.loads(run.parameters.config),
             )
             execute_template(rendered_template)
 
         thread = Thread(
-            target=partial(self._threaded_execution_handler, flow, job_config),
+            target=partial(self._threaded_execution_handler, flow, run_id),
             daemon=True,
         )
         thread.start()
