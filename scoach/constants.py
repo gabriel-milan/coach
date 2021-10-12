@@ -43,7 +43,7 @@ class constants(Enum):  # pylint: disable=invalid-name
     DB_PASSWORD_ENV = "DB_PASSWORD"
     DB_PASSWORD_ENV_DEFAULT = None
     DB_NAME_ENV = "DB_NAME"
-    DB_NAME_ENV_DEFAULT = "coach"
+    DB_NAME_ENV_DEFAULT = "scoach"
     RUN_STATUS_CREATED = "CREATED"
     RUN_STATUS_QUEUED = "QUEUED"
     RUN_STATUS_RUNNING = "RUNNING"
@@ -85,8 +85,8 @@ class constants(Enum):  # pylint: disable=invalid-name
     # Dask scheduler
     DASK_DEFAULT_WORKERS = 0
 
-    # Coach
-    COACH_DEFAULT_CONFIG_PATH = Path.home() / ".coach/config.yaml"
+    # scoach
+    SCOACH_DEFAULT_CONFIG_PATH = Path.home() / ".scoach/config.yaml"
     SCHEDULER_SLEEP_TIME = 30 * SECOND
 
     # Django

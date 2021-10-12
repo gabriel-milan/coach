@@ -4,16 +4,17 @@ import minio
 import typer
 import psycopg2
 
-from coach.constants import constants
-from coach.utils import load_config_file_to_envs
+from scoach.constants import constants
+from scoach.utils import load_config_file_to_envs
 
 
 def check_config():
     """
     Check if the config file exists.
     """
-    if not constants.COACH_DEFAULT_CONFIG_PATH.value.exists():
-        typer.echo("No config file found. Please run `coach init` to create one.")
+    if not constants.SCOACH_DEFAULT_CONFIG_PATH.value.exists():
+        typer.echo(
+            "No config file found. Please run `scoach init` to create one.")
         exit(1)
 
     load_config_file_to_envs()

@@ -1,5 +1,5 @@
 import tensorflow as tf
-from coach.utils import save_run
+from scoach.utils import save_run
 
 from time import sleep
 

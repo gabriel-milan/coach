@@ -8,5 +8,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # Since we only have one app which we use
 INSTALLED_APPS = (
-    'coach',
+    'scoach',
 )

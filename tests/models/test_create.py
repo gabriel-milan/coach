@@ -1,6 +1,6 @@
 import json
 
-from coach import models
+from scoach import models
 
 
 def test_model():

@@ -13,10 +13,10 @@ from prefect import task, Flow
 from prefect.engine.state import State
 from prefect.executors import DaskExecutor
 
-from coach.constants import constants
-from coach.logging import logger
-from coach.scheduler import Scheduler
-from coach.utils import get_minio_client, load_config_file_to_envs, load_env_as_type, safe_object_get
+from scoach.constants import constants
+from scoach.logging import logger
+from scoach.scheduler import Scheduler
+from scoach.utils import get_minio_client, load_config_file_to_envs, load_env_as_type, safe_object_get
 
 
 @task
@@ -32,7 +32,7 @@ def update_run_status(run_id: str):
     Args:
         - run (Run): the run to update
     """
-    from coach.models import Status, Run
+    from scoach.models import Status, Run
     status = safe_object_get(
         Status, status=constants.RUN_STATUS_RUNNING.value)
     if status is None:
@@ -85,7 +85,7 @@ class Executor:  # pylint: disable=too-few-public-methods
         """
         Threaded handler for the flow execution
         """
-        from coach.models import Status, Run
+        from scoach.models import Status, Run
         status = safe_object_get(
             Status, status=constants.RUN_STATUS_QUEUED.value)
         if status is None:
@@ -125,7 +125,7 @@ class Executor:  # pylint: disable=too-few-public-methods
         """
         Execute the training job
         """
-        from coach.models import Model, Run
+        from scoach.models import Model, Run
         with Flow("Training Flow") as flow:
             setup()
             update_run_status(run_id=run_id)

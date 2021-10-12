@@ -132,4 +132,4 @@ dmypy.json
 *.lock
 
 manage.py
-coach/migrations/
+scoach/migrations/

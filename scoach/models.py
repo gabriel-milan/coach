@@ -4,8 +4,8 @@ import django
 from django.db import models
 from django.core import management
 
-from coach.constants import constants
-from coach.utils import load_config_file_to_envs, setup_django
+from scoach.constants import constants
+from scoach.utils import load_config_file_to_envs, setup_django
 
 
 setup_django()

@@ -15,8 +15,8 @@ import django
 from django.db import models
 from django.core import management
 
-from coach.constants import constants
-from coach.logging import logger
+from scoach.constants import constants
+from scoach.logging import logger
 
 
 def load_env_as_type(env_name, env_type=str, default=None):
@@ -89,12 +89,13 @@ def load_config_file_to_envs():
     """
     Loads the config file to environment variables.
     """
-    if not constants.COACH_DEFAULT_CONFIG_PATH.value.exists():
-        typer.echo("No config file found. Please run `coach init` to create one.")
+    if not constants.SCOACH_DEFAULT_CONFIG_PATH.value.exists():
+        typer.echo(
+            "No config file found. Please run `scoach init` to create one.")
         exit(1)
     # pylint: disable=unspecified-encoding
     # pylint: disable=invalid-name
-    with open(constants.COACH_DEFAULT_CONFIG_PATH.value, "r") as f:
+    with open(constants.SCOACH_DEFAULT_CONFIG_PATH.value, "r") as f:
         config: dict = yaml.safe_load(f)
     for key, value in config.items():
         os.environ[key] = str(value)
@@ -152,7 +153,7 @@ def save_run(run_id: str, model, train_score: float, validation_score: float):
     """
     Save a run to the database.
     """
-    from coach.models import Run, Weights
+    from scoach.models import Run, Weights
     # Cast types
     train_score = safe_cast(train_score, float, None)
     if train_score is None:
@@ -195,7 +196,7 @@ def load_run(run_id: str):
     # pylint: disable=no-name-in-module
     # pylint: disable=import-outside-toplevel
     from tensorflow.keras.models import model_from_json
-    from coach.models import Run, Weights
+    from scoach.models import Run, Weights
 
     run: Run = safe_object_get(Run, id=run_id)
     if run:
@@ -220,7 +221,7 @@ def setup_django():
     load_config_file_to_envs()
     mode = os.getenv(constants.DJANGO_SETTINGS_MODE_ENV.value,
                      constants.DJANGO_SETTINGS_MODE_ENV_DEFAULT.value)
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', f'coach.settings.{mode}')
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', f'scoach.settings.{mode}')
     try:
         django.setup()
     except RuntimeError as e:
@@ -231,5 +232,5 @@ def setup_django():
 def setup_database():
     setup_django()
     management.execute_from_command_line(
-        ['manage.py', 'makemigrations', 'coach'])
+        ['manage.py', 'makemigrations', 'scoach'])
     management.execute_from_command_line(['manage.py', 'migrate'])

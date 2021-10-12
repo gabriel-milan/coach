@@ -2,8 +2,8 @@
 
 # import hub
 
-# from coach.constants import constants
-# from coach.utils import load_config_file_to_envs
+# from scoach.constants import constants
+# from scoach.utils import load_config_file_to_envs
 
 # # TODO: In the future, we could use Hub for data management
 # class Dataset (hub.dataset):

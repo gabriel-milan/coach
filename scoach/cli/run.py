@@ -1,5 +1,5 @@
 """
-Provides CLI app for Coach.
+Provides CLI app for scoach.
 """
 
 import json
@@ -10,10 +10,10 @@ from os.path import join
 
 import typer
 
-from coach.cli.utils import check_config
-from coach.constants import constants
-from coach.logging import logger
-from coach.utils import (
+from scoach.cli.utils import check_config
+from scoach.constants import constants
+from scoach.logging import logger
+from scoach.utils import (
     get_minio_client,
     save_to_minio,
     safe_object_get
@@ -30,7 +30,7 @@ def submit(python_script: Path, job_config: Path, model_config: Path, tags: List
     """
     if not check_config():
         return
-    from coach.models import Script, Parameters, Model, Status, Run, Tag
+    from scoach.models import Script, Parameters, Model, Status, Run, Tag
     # Check if all paths exists
     if not python_script.exists():
         script: Script = safe_object_get(Script, id=str(python_script))
@@ -109,7 +109,7 @@ def list():
     """
     if not check_config():
         return
-    from coach.models import Run
+    from scoach.models import Run
     runs = Run.objects.all()
     typer.echo(f"Found {len(runs)} runs.")
     for run in runs:
@@ -124,7 +124,7 @@ def delete(run_id: str):
     """
     if not check_config():
         return
-    from coach.models import Run
+    from scoach.models import Run
     run: Run = safe_object_get(Run, id=run_id)
     if run is None:
         typer.echo(f"Run {run_id} not found.")
@@ -148,7 +148,7 @@ def describe(run_id: str):
     """
     if not check_config():
         return
-    from coach.models import Run
+    from scoach.models import Run
     run: Run = safe_object_get(Run, id=run_id)
     if run is None:
         typer.echo(f"Run {run_id} not found.")
@@ -167,7 +167,7 @@ def describe(run_id: str):
     typer.echo(
         "If you desire to load this model, open a Python shell and do the following:"
     )
-    typer.echo(">>> from coach.utils import load_run")
+    typer.echo(">>> from scoach.utils import load_run")
     typer.echo(f">>> model = load_run({run_id})")
 
 
@@ -179,7 +179,7 @@ def retry(run_id: str):
     """
     if not check_config():
         return
-    from coach.models import Status, Run
+    from scoach.models import Status, Run
     run: Run = safe_object_get(Run, id=run_id)
     if run is None:
         typer.echo(f"Run {run_id} not found.")

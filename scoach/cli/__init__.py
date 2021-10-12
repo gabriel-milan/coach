@@ -3,16 +3,16 @@ from pathlib import Path
 import yaml
 import typer
 
-from coach.cli import run, script
-from coach.cli.utils import (
+from scoach.cli import run, script
+from scoach.cli.utils import (
     check_config,
     check_database_exists,
     check_minio_connection,
 )
-from coach.coach import Coach
-from coach.constants import constants
-from coach.logging import logger
-from coach.utils import setup_database
+from scoach.scoach import Scoach
+from scoach.constants import constants
+from scoach.logging import logger
+from scoach.utils import setup_database
 
 app = typer.Typer()
 app.add_typer(run.app, name="run", help="Manages runs")
@@ -29,7 +29,7 @@ def init():  # pylint: disable=too-many-locals
     # DB_PORT: 5432
     # DB_USER: "postgres"
     # DB_PASSWORD: "postgres"
-    # DB_NAME: "coach"
+    # DB_NAME: "scoach"
     # SLURM_PARTITION: "debug"
     # SLURM_CORES_PER_JOB: 1
     # SLURM_MEMORY_PER_JOB: "1G"
@@ -43,7 +43,7 @@ def init():  # pylint: disable=too-many-locals
     # MINIO_SECRET_KEY: "minio_secret_key"
     # MINIO_BUCKET: "minio_bucket_name"
     typer.echo(
-        "Welcome to Coach! Please fill all requested fields!")
+        "Welcome to scoach! Please fill all requested fields!")
     db_host = typer.prompt(constants.DB_HOST_ENV.value,
                            default=constants.DB_HOST_ENV_DEFAULT.value)
     db_port = typer.prompt(constants.DB_PORT_ENV.value,
@@ -98,7 +98,7 @@ def init():  # pylint: disable=too-many-locals
         return
 
     # Save configs to YAML file
-    config_path = Path(constants.COACH_DEFAULT_CONFIG_PATH.value)
+    config_path = Path(constants.SCOACH_DEFAULT_CONFIG_PATH.value)
     config_path.parent.mkdir(parents=True, exist_ok=True)
     config_path.write_text(
         yaml.dump(
@@ -125,7 +125,7 @@ def init():  # pylint: disable=too-many-locals
         )
     )
     typer.echo(
-        f"Config file created at {constants.COACH_DEFAULT_CONFIG_PATH.value}.")
+        f"Config file created at {constants.SCOACH_DEFAULT_CONFIG_PATH.value}.")
 
     typer.echo("Setting up database...")
     setup_database()
@@ -140,6 +140,6 @@ def start():
     if not check_config():
         return
 
-    typer.echo("Starting Coach daemon process...")
-    coach = Coach()
-    coach.start_scheduler()
+    typer.echo("Starting scoach daemon process...")
+    scoach = Scoach()
+    scoach.start_scheduler()

@@ -6,4 +6,4 @@ __all__ = ["logger"]
 
 from loguru import logger
 
-logger.add("coach.log")
+logger.add("scoach.log")

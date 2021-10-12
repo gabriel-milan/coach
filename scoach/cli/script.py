@@ -1,9 +1,9 @@
 
 import typer
 
-from coach.cli.utils import check_config
-from coach.logging import logger
-from coach.utils import (
+from scoach.cli.utils import check_config
+from scoach.logging import logger
+from scoach.utils import (
     safe_object_get,
     get_minio_client,
     download_from_minio,
@@ -20,7 +20,7 @@ def list():
     """
     if not check_config():
         return
-    from coach.models import Script
+    from scoach.models import Script
     scripts = Script.objects.all()
     if len(scripts) == 0:
         typer.echo("No scripts found.")
@@ -38,7 +38,7 @@ def download(script_id: str):
     """
     if not check_config():
         return
-    from coach.models import Script
+    from scoach.models import Script
     script: Script = safe_object_get(Script, id=script_id)
     if script is None:
         typer.echo(f"Script {script_id} not found.")
@@ -57,7 +57,7 @@ def delete(script_id: str):
     """
     if not check_config():
         return
-    from coach.models import Script
+    from scoach.models import Script
     script: Script = safe_object_get(Script, id=script_id)
     if script is None:
         typer.echo(f"Script {script_id} not found.")
@@ -81,7 +81,7 @@ def describe(script_id: str):
     """
     if not check_config():
         return
-    from coach.models import Script, Run
+    from scoach.models import Script, Run
     script: Script = safe_object_get(Script, id=script_id)
     if script is None:
         typer.echo(f"Script {script_id} not found.")

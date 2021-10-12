@@ -1,5 +1,5 @@
 """
-Provides Coach, the main class for the application.
+Provides scoach, the main class for the application.
 """
 
 import json
@@ -8,20 +8,20 @@ import time
 from os.path import join
 from threading import Thread
 
-from coach.constants import constants
-from coach.executor import Executor
-from coach.logging import logger
-from coach.scheduler import Scheduler
-from coach.utils import get_minio_client, load_env_as_type, save_to_minio
+from scoach.constants import constants
+from scoach.executor import Executor
+from scoach.logging import logger
+from scoach.scheduler import Scheduler
+from scoach.utils import get_minio_client, load_env_as_type, save_to_minio
 
 
-class Coach:
+class Scoach:
     """
-    Main class for Coach
+    Main class for scoach
     """
 
     def __init__(self):
-        logger.info("Coach instance initializing...")
+        logger.info("scoach instance initializing...")
         self._scheduler: Scheduler = None
         self._executor: Executor = None
         self._scheduler_thread: Thread = None
@@ -51,7 +51,7 @@ class Coach:
         and launches them
         :return:
         """
-        from coach.models import Run
+        from scoach.models import Run
         while True:
             try:
                 new_runs = Run.objects.all().filter(
@@ -73,7 +73,7 @@ class Coach:
     @logger.catch
     def start_scheduler(self):
         """
-        Starts the Coach daemon
+        Starts the scoach daemon
         :return:
         """
         if not self._scheduler:
@@ -82,4 +82,4 @@ class Coach:
             self._initialize_executor()
         logger.info("Starting scheduler in a thread...")
         self._initialize_scheduler_thread()
-        logger.info("Coach daemon is executing...")
+        logger.info("scoach daemon is executing...")
