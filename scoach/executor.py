@@ -94,7 +94,7 @@ class Executor:  # pylint: disable=too-few-public-methods
         run: Run = safe_object_get(Run, id=run_id)
         run.status = status
         run.save()
-        state: State = flow.run()  # (executor=self._executor)
+        state: State = flow.run(executor=self._executor)
         while not state.is_finished():
             sleep(0.25)
         if state.is_failed():
