@@ -3,6 +3,7 @@ from pathlib import Path
 import yaml
 import typer
 
+from scoach import __version__
 from scoach.cli import run, script
 from scoach.cli.utils import (
     check_config,
@@ -17,6 +18,14 @@ from scoach.utils import setup_database
 app = typer.Typer()
 app.add_typer(run.app, name="run", help="Manages runs")
 app.add_typer(script.app, name="script", help="Manages scripts")
+
+
+@app.command()
+def version():
+    """
+    Prints the version of the scoach cli
+    """
+    typer.echo(f"scoach {__version__}")
 
 
 @app.command()
@@ -133,7 +142,7 @@ def init():  # pylint: disable=too-many-locals
 
 @app.command()
 @logger.catch
-def start():
+def start(local: bool = typer.Option(False, help="Run on local Dask Executor")):
     """
     Run daemon process for SLURM login machine.
     """
@@ -141,5 +150,5 @@ def start():
         return
 
     typer.echo("Starting scoach daemon process...")
-    scoach = Scoach()
+    scoach = Scoach(local=local)
     scoach.start_scheduler()

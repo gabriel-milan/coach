@@ -18,5 +18,6 @@ A setup for training Tensorflow models on SLURM clusters
 
 ## To do
 
+- [x] Add option `--local` on `scoach start` for launching runs locally
 - [ ] Add support for uploading/managing datasets
 - [ ] No Python script duplicates

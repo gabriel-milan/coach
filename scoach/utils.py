@@ -229,6 +229,20 @@ def setup_django():
             raise e
 
 
+def parse_parameters(params: dict):
+    for key, val in params.items():
+        if isinstance(val, str):
+            params[key] = f"\"{val}\""
+        # elif isinstance(val, list):
+        #     for i, v in enumerate(val):
+        #         if isinstance(v, str):
+        #             val[i] = f"\"{v}\""
+        #     params[key] = val
+        # elif isinstance(val, dict):
+        #     parse_parameters(val)
+    return params
+
+
 def setup_database():
     setup_django()
     management.execute_from_command_line(

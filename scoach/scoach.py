@@ -20,11 +20,12 @@ class Scoach:
     Main class for scoach
     """
 
-    def __init__(self):
+    def __init__(self, local: bool = False):
         logger.info("scoach instance initializing...")
         self._scheduler: Scheduler = None
         self._executor: Executor = None
         self._scheduler_thread: Thread = None
+        self._local: bool = local
 
     def _initialize_scheduler(self):
         logger.info("Starting Scheduler instance...")
@@ -35,7 +36,7 @@ class Scoach:
         logger.info("Starting Executor instance...")
         if not self._scheduler:
             self._initialize_scheduler()
-        self._executor: Executor = Executor(self._scheduler)
+        self._executor: Executor = Executor(self._scheduler, local=self._local)
         logger.info("Executor instance started successfully!")
 
     def _initialize_scheduler_thread(self):
@@ -54,8 +55,11 @@ class Scoach:
         from scoach.models import Run
         while True:
             try:
+                # queued_runs = Run.objects.all().filter(
+                #     status__status=constants.RUN_STATUS_QUEUED.value)
                 new_runs = Run.objects.all().filter(
                     status__status=constants.RUN_STATUS_CREATED.value)
+                # for run in queued_runs | new_runs:
                 for run in new_runs:
                     logger.info(f"Sending new run ({run}) to the executor")
                     if not self._scheduler:
